@@ -9,6 +9,11 @@ type Rule struct {
 }
 
 var Catalog = []Rule{
+	// Upstream documents these as download/metadata caches, separate from
+	// Cargo's installed executables, kubeconfig, and Helm registry credentials.
+	{ID: "cargo-archives", Name: "Cargo crate downloads", Commands: []string{"cargo"}, Watch: []string{"cargo", "rustc", "rust-analyzer", "rustup"}, Home: []string{".cargo/registry/cache"}},
+	{ID: "kubectl", Name: "Kubernetes client", Commands: []string{"kubectl"}, Watch: []string{"kubectl", "helm", "k9s", "kustomize", "skaffold", "argocd"}, Home: []string{".kube/cache"}},
+	{ID: "helm", Name: "Helm repository indexes", Commands: []string{"helm"}, Watch: []string{"helm"}, Cache: []string{"helm/repository"}},
 	{ID: "chrome", Name: "Google Chrome", Commands: []string{"google-chrome", "google-chrome-stable"}, Packages: []string{"google-chrome-stable"}, Watch: []string{"chrome", "google-chrome", "google-chrome-stable"}, Cache: []string{"google-chrome"}, Config: []string{"google-chrome/*/Cache", "google-chrome/*/Code Cache", "google-chrome/*/GPUCache"}},
 	{ID: "chromium", Name: "Chromium", Commands: []string{"chromium", "chromium-browser"}, Packages: []string{"chromium", "chromium-browser"}, Flatpaks: []string{"org.chromium.Chromium"}, Watch: []string{"chromium", "chrome"}, Cache: []string{"chromium"}, Home: []string{"snap/chromium/common/.cache/chromium", ".var/app/org.chromium.Chromium/cache/chromium"}},
 	{ID: "firefox", Name: "Firefox", Commands: []string{"firefox"}, Packages: []string{"firefox"}, Flatpaks: []string{"org.mozilla.firefox"}, Watch: []string{"firefox", "firefox-bin"}, Cache: []string{"mozilla/firefox"}, Home: []string{"snap/firefox/common/.cache/mozilla/firefox", ".var/app/org.mozilla.firefox/cache/mozilla/firefox"}},

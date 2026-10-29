@@ -53,7 +53,7 @@ func Discover(ctx context.Context) (Environment, error) {
 	}
 	e.Processes, e.ProcessesKnown = Processes(e.UID)
 	e.Inventory = Inventory{Commands: map[string]string{}, Packages: map[string]bool{}, Flatpaks: map[string]bool{}}
-	for _, name := range []string{"docker", "go", "npm", "uv", "trivy", "cargo", "apt-get", "snap", "flatpak", "journalctl", "code", "codium", "google-chrome", "google-chrome-stable", "chromium", "chromium-browser", "brave-browser", "firefox", "slack", "discord", "spotify", "claude", "codex", "chatgpt", "antigravity", "pip", "pip3", "yarn", "pnpm", "gradle", "mvn"} {
+	for _, name := range []string{"docker", "go", "npm", "uv", "trivy", "cargo", "kubectl", "helm", "apt-get", "snap", "flatpak", "journalctl", "code", "codium", "google-chrome", "google-chrome-stable", "chromium", "chromium-browser", "brave-browser", "firefox", "slack", "discord", "spotify", "claude", "codex", "chatgpt", "antigravity", "pip", "pip3", "yarn", "pnpm", "gradle", "mvn"} {
 		if path, lookupErr := exec.LookPath(name); lookupErr == nil {
 			e.Inventory.Commands[name] = path
 		}

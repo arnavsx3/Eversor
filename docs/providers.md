@@ -15,6 +15,9 @@ There is no universal rule that labels every application's data safe to delete.
 | Trivy, pre-commit, Go lint, mise | Known scan, hook-environment, lint and installer-download caches | Installed toolchains and custom source/configuration |
 | Desktop thumbnails | Generated thumbnail cache | Original pictures and videos |
 | Rust projects | A `target` directory with Cargo's cache marker and an adjacent `Cargo.toml`, discovered under non-hidden home directories | Source, manifests, lockfiles, databases and installed Rust toolchains |
+| Cargo downloads | Downloaded `.crate` archives in the default `~/.cargo/registry/cache` | Extracted registry source, indexes, Git checkouts, credentials, installed binaries and Rust toolchains |
+| Kubernetes client | Default `~/.kube/cache` discovery/HTTP metadata | Kubeconfig, client keys/certificates, cluster workloads and Minikube data |
+| Helm | Repository indexes in the XDG cache's `helm/repository` directory | Repository configuration, registry credentials, plugins and deployed releases |
 | Docker | Native pruning of unused build cache through a verified and pinned local Unix socket | Images, containers, networks, volumes and database contents; remote contexts |
 | APT | Downloaded installers and packages APT itself proposes for autoremove/purge | Running and newest installed kernels; manually installed or required packages |
 | Snap | Revisions confirmed disabled again immediately before removal | Active revisions and application user data |
@@ -31,6 +34,17 @@ Shared files with additional hard links are excluded from reclaimable-size
 estimates. Native tools may retain data, so their complete cache size is not a
 promise of free space. `clean` measures the filesystem's actual available-space
 change after all selected actions.
+
+Cargo downloads may be needed for offline builds. Cleaning them can require
+network access on a later build. The rest of `~/.cargo/registry` is retained.
+These rules use the documented default locations; custom `CARGO_HOME`, kubectl
+`--cache-dir`, and Helm-specific path overrides are not automatically targeted.
+
+Upstream references for these boundaries:
+
+- [Cargo home directory layout](https://doc.rust-lang.org/cargo/guide/cargo-home.html)
+- [kubectl cache directory](https://kubernetes.io/docs/reference/kubectl/generated/kubectl/)
+- [Helm cache and configuration locations](https://helm.sh/docs/helm/helm/)
 
 ## Adding an application
 
