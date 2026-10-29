@@ -1,0 +1,90 @@
+# Usage and installation
+
+## Build and install
+
+Install [Go 1.25 or newer](https://go.dev/doc/install), then:
+
+```sh
+git clone https://github.com/arnavsx3/Eversor.git
+cd Eversor
+make check
+make install
+eversor version
+```
+
+Installation places a root-owned binary at `/usr/local/bin/eversor`. The shell
+finds it without changing your home directory or PATH. Source code and local
+build outputs remain in the checkout. Use `make uninstall` to remove the binary.
+
+CI also builds Linux amd64 and arm64 archives containing the binary and licence,
+with a SHA-256 manifest. When installing a prebuilt archive, verify its checksum
+against the accompanying trusted manifest, extract the appropriate architecture,
+then use `sudo install -o root -g root -m 0755 eversor /usr/local/bin/eversor`.
+
+## Inspect
+
+```sh
+eversor dry-run
+eversor dry-run --tree-depth 1
+eversor dry-run --no-tree
+eversor dry-run --json
+```
+
+Preview does not delete files, request administrator access, or save a report.
+It prints a home storage tree and supported cleanup candidates with reasons and
+estimates. Missing apps require no configuration; known artifacts can be found
+even after their app was uninstalled. Unknown folders in the tree stay untouched.
+
+The tree does not follow symlinks or cross mounts. It inspects up to one million
+entries and reports if the tree is partial. `--no-tree` omits the general storage
+walk. `--no-projects` also omits Rust build-cache discovery.
+
+## Clean
+
+```sh
+eversor clean
+eversor clean --user-only
+eversor clean --no-projects
+eversor clean --yes --json
+```
+
+`clean` makes a new plan rather than trusting a previously saved preview. Confirm
+the displayed plan with `y` or use `--yes`. Empty input or EOF cancels cleanup.
+JSON cleanup requires `--yes` so the output is not mixed with a confirmation
+question. Use `--user-only` to omit system package and archived-journal cleanup.
+
+Run the public commands from your normal account. Only fixed system operations
+are elevated through sudo; the password prompt is for those operations. Cache
+files and project build outputs are never deleted as root.
+
+Open supported apps, active builds, cache-root substitutions, unknown ownership,
+and mounted caches are skipped. Files detected as in use are also skipped. Close
+apps/builds and run again if you want their eligible caches included.
+
+Each action reports `cleaned`, `skipped` or `failed`. Independent failures do not
+prevent other eligible actions from being reported. Exit status is 0 for a
+successful preview, cancellation or cleanup without failed actions; 1 for an
+inspection/execution failure; and 2 for invalid arguments. A failed run can have
+partially completed independent actions; read the per-action results.
+
+The final space delta measures the root filesystem's available bytes before and
+after cleanup, including concurrent disk activity. It can be negative when other
+apps write data. Shared hard-linked files and native tools make estimates differ
+from actual recovery. No fixed amount of recovered space is promised.
+
+## Privacy and persistence
+
+Eversor has no scheduler, telemetry, network service, or automatic report log.
+Cleanup creates an empty concurrency-lock file in the runtime directory (or the
+system temporary directory when no runtime directory is available).
+
+To save a report yourself:
+
+```sh
+eversor dry-run --json > eversor-preview.json
+eversor clean --yes --json > eversor-cleanup.json
+```
+
+Reports include local filesystem paths and command output. Keep real reports
+private; use synthetic paths in bug reports. Never post credentials, browser
+databases, or application data to demonstrate an issue.

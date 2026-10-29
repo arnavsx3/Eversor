@@ -27,7 +27,7 @@ checks run again immediately before each cleanup action. Process inspection is
 best effort under Linux permissions; these checks supplement explicit provider
 boundaries rather than turn arbitrary directories into safe targets.
 
-Go shared files with additional hard links are excluded from reclaimable-size
+Shared files with additional hard links are excluded from reclaimable-size
 estimates. Native tools may retain data, so their complete cache size is not a
 promise of free space. `clean` measures the filesystem's actual available-space
 change after all selected actions.

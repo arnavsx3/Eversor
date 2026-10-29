@@ -8,17 +8,19 @@ Eversor provides a read-only storage preview and a confirmed cleanup command.
 It detects supported software and known cache artifacts on the current machine.
 Unknown directories are shown in the storage tree and never automatically purged.
 
-Build with Go 1.25 or newer:
+Build and install with Go 1.25 or newer:
 
 ```sh
-go build -o bin/eversor ./cmd/eversor
-./bin/eversor dry-run
-./bin/eversor dry-run --json --no-tree
-./bin/eversor clean --user-only
+make check
+make install
+eversor dry-run
+eversor clean
 ```
 
 Development binaries can clean user caches. Installation to a root-owned system
 path enables the separate administrator-authorized package cleanup helper.
+See [installation and usage](docs/usage.md) for flags, reports, and uninstalling.
+CI produces Linux amd64 and arm64 archives with checksums.
 
 ## Workflow
 
@@ -57,7 +59,8 @@ and downloads take longer. Measured recovery includes concurrent disk activity.
 
 Keep each change focused and review its diff before committing. Use Conventional
 Commits, validate the change, and push each completed change before starting the
-next one. Project-specific working instructions are in [AGENTS.md](AGENTS.md).
+next one. Read [CONTRIBUTING.md](CONTRIBUTING.md), the
+[development guide](docs/development.md), and [AGENTS.md](AGENTS.md).
 
 ## License
 
