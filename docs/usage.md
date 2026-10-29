@@ -71,10 +71,14 @@ successful preview, cancellation or cleanup without failed actions; 1 for an
 inspection/execution failure; and 2 for invalid arguments. A failed run can have
 partially completed independent actions; read the per-action results.
 
-The final space delta measures the root filesystem's available bytes before and
-after cleanup, including concurrent disk activity. It can be negative when other
-apps write data. Shared hard-linked files and native tools make estimates differ
-from actual recovery. No fixed amount of recovered space is promised.
+The final space delta samples the root and home filesystems, eligible cache paths,
+and standard native-tool storage locations before and after cleanup. Shared
+filesystems are counted once, so a separate home or boot drive is accounted for.
+Unavailable or changed filesystems produce measurement notes. Custom Docker
+storage on a separate drive may be outside these observed locations.
+The delta includes concurrent disk activity and can be negative when other apps
+write data. Shared hard-linked files and native tools make estimates differ from
+actual recovery. No fixed amount of recovered space is promised.
 
 ## Privacy and persistence
 

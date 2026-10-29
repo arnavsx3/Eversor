@@ -120,7 +120,7 @@ func Run(ctx context.Context, args []string, in io.Reader, out, errout io.Writer
 		return 1
 	}
 	defer unlock()
-	before := core.AvailableBytes()
+	before := core.MeasureSpace(env, plan)
 	r := core.Report{Plan: plan}
 	var system []string
 	for _, c := range plan.Candidates {
@@ -158,7 +158,10 @@ func Run(ctx context.Context, args []string, in io.Reader, out, errout io.Writer
 			}
 		}
 	}
-	r.FreedBytes = core.AvailableBytes() - before
+	r.Filesystems, r.MeasurementWarnings = before.Change()
+	for _, filesystem := range r.Filesystems {
+		r.FreedBytes += filesystem.Bytes
+	}
 	status := 0
 	for _, result := range r.Results {
 		if result.Status == "failed" {

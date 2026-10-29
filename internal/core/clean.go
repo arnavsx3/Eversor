@@ -229,5 +229,3 @@ func AcquireLock(e Environment) (func(), error) {
 	}
 	return func() { file.Close() }, nil
 }
-
-func AvailableBytes() int64 { return diskAvailable() }

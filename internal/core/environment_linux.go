@@ -196,7 +196,7 @@ func (e Environment) MountedBelow(path string) bool {
 		if within(path, point) {
 			return true
 		}
-		if within(e.Home, point) && within(point, path) {
+		if point != filepath.Clean(e.Home) && within(e.Home, point) && within(point, path) {
 			return true
 		}
 	}
@@ -208,12 +208,4 @@ func identity(info os.FileInfo) Identity {
 		return Identity{Device: uint64(stat.Dev), Inode: stat.Ino, UID: stat.Uid}
 	}
 	return Identity{}
-}
-
-func diskAvailable() int64 {
-	var stat syscall.Statfs_t
-	if syscall.Statfs("/", &stat) != nil {
-		return 0
-	}
-	return int64(stat.Bavail) * stat.Bsize
 }

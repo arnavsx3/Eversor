@@ -114,7 +114,9 @@ type Result struct {
 }
 
 type Report struct {
-	Plan       Plan     `json:"plan"`
-	Results    []Result `json:"results"`
-	FreedBytes int64    `json:"filesystem_available_change_bytes"`
+	Plan                Plan               `json:"plan"`
+	Results             []Result           `json:"results"`
+	FreedBytes          int64              `json:"filesystem_available_change_bytes"`
+	Filesystems         []FilesystemChange `json:"filesystems,omitempty"`
+	MeasurementWarnings []string           `json:"measurement_warnings,omitempty"`
 }

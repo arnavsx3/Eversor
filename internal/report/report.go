@@ -71,6 +71,14 @@ func Summary(w io.Writer, r core.Report) {
 		counts[result.Status]++
 	}
 	fmt.Fprintf(w, "\nCleanup complete: %d cleaned, %d skipped, %d failed.\n", counts["cleaned"], counts["skipped"], counts["failed"])
-	fmt.Fprintf(w, "Filesystem available-space change: %s (includes concurrent disk activity).\n", Size(r.FreedBytes))
+	fmt.Fprintf(w, "Measured available-space change: %s (includes concurrent disk activity).\n", Size(r.FreedBytes))
+	if len(r.Filesystems) > 1 {
+		for _, filesystem := range r.Filesystems {
+			fmt.Fprintf(w, "  %s: %s\n", filesystem.Path, Size(filesystem.Bytes))
+		}
+	}
+	for _, warning := range r.MeasurementWarnings {
+		fmt.Fprintln(w, "Measurement note:", warning)
+	}
 	fmt.Fprintln(w, "Rebuildable caches may return as applications are used. No automatic log was saved.")
 }

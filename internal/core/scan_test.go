@@ -101,6 +101,12 @@ func TestCacheBoundaryRejectsLinksAndMounts(t *testing.T) {
 	}
 	cache := filepath.Join(e.Cache, "npm")
 	write(t, filepath.Join(cache, "blob"), "cache")
+	e.Mounts = []string{e.Home}
+	root, _, err := e.OpenCache(cache)
+	if err != nil {
+		t.Fatal("home mount must remain the trusted root", err)
+	}
+	root.Close()
 	e.Mounts = []string{filepath.Join(cache, "mounted")}
 	if root, _, err := e.OpenCache(cache); err == nil {
 		root.Close()
