@@ -1,8 +1,8 @@
 # Working on Eversor
 
 Read `README.md` and any agreed design documents before making changes. The
-project is currently in the planning stage; keep implementation and infrastructure
-work within the user's requested scope.
+architecture is documented in `docs/architecture.md`; keep implementation and
+infrastructure work within the user's requested scope.
 
 ## Commit and push workflow
 

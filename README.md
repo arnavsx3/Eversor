@@ -3,8 +3,9 @@
 An open-source Linux cleanup tool for understanding disk usage and reclaiming
 space from known caches and obsolete files.
 
-Eversor is in the planning stage. This repository currently contains project
-documentation; the application and its infrastructure have not been implemented.
+The architecture is documented in [docs/architecture.md](docs/architecture.md).
+Implementation is being developed in focused increments; runnable commands and
+their supported cleanup rules will be documented as they are delivered.
 
 ## Planned workflow
 
@@ -25,9 +26,9 @@ Large or unfamiliar directories should remain inspection results until there is
 an explicit, supported rule for cleaning them. Personal files, project source,
 credentials, browser profiles, and databases must be preserved.
 
-Ubuntu is the proposed initial target. The implementation language, architecture,
-repository structure for application code, and infrastructure will be decided
-during project planning.
+The initial target is Ubuntu. Eversor uses Go and an application-provider registry
+to detect the software installed on each machine. Unsupported folders remain
+inspection-only rather than being guessed safe to delete.
 
 ## Contributing
 
