@@ -1,6 +1,34 @@
 # Usage and installation
 
-## Build and install
+## Install a release
+
+Download the `.deb` matching `dpkg --print-architecture` and `SHA256SUMS` from
+[GitHub Releases](https://github.com/arnavsx3/Eversor/releases/latest). Keep only
+the selected package and the manifest in your download directory, then verify
+its checksum (replace the filename for ARM systems):
+
+```sh
+sha256sum --ignore-missing --check SHA256SUMS
+sudo apt install ./eversor_0.1.0_amd64.deb
+eversor version
+```
+
+Check that verification reports `OK` for the package you are installing. A
+checksum verifies integrity against the accompanying trusted manifest; it is not
+a cryptographic publisher signature.
+
+The package installs a root-owned `/usr/bin/eversor` without Go or Make on the
+destination machine. Downloading a later `.deb` and installing it with APT
+upgrades the package. Remove it with `sudo apt remove eversor`; removal does not
+undo earlier cleanup or remove your source checkout. Ubuntu's regular APT updates
+do not download new Eversor versions from GitHub. No updater or schedule is added.
+
+If switching from a source installation, first run
+`make -C ~/Projects/Eversor uninstall`. The source installer uses
+`/usr/local/bin/eversor`, which would otherwise take precedence over the package's
+`/usr/bin/eversor`. Use `type -a eversor` to see installed copies.
+
+## Build from source
 
 Install [Go 1.25 or newer](https://go.dev/doc/install), then:
 
@@ -15,6 +43,16 @@ eversor version
 Installation places a root-owned binary at `/usr/local/bin/eversor`. The shell
 finds it without changing your home directory or PATH. Source code and local
 build outputs remain in the checkout. Use `make uninstall` to remove the binary.
+
+Update a source installation with:
+
+```sh
+make -C ~/Projects/Eversor update
+```
+
+This requires a clean checkout, fast-forwards its tracked branch, runs checks and
+reinstalls. Local edits or a divergent branch stop the update. Do not use it to
+update a `.deb` installation; install the newer package instead.
 
 CI also builds Linux amd64 and arm64 archives containing the binary and licence,
 with a SHA-256 manifest. When installing a prebuilt archive, verify its checksum

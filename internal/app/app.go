@@ -18,6 +18,7 @@ import (
 )
 
 var Version = "dev"
+var Revision = "unknown"
 
 var discover = core.Discover
 
@@ -27,7 +28,11 @@ func Run(ctx context.Context, args []string, in io.Reader, out, errout io.Writer
 		return 0
 	}
 	if args[0] == "version" || args[0] == "--version" {
-		fmt.Fprintln(out, "eversor", Version)
+		if Revision != "unknown" {
+			fmt.Fprintf(out, "eversor %s (%s)\n", Version, Revision)
+		} else {
+			fmt.Fprintln(out, "eversor", Version)
+		}
 		return 0
 	}
 	if args[0] == "__system-clean" {

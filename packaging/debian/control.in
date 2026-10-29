@@ -1,0 +1,12 @@
+Package: eversor
+Version: @VERSION@
+Architecture: @ARCH@
+Maintainer: Eversor contributors <arnavsx3@users.noreply.github.com>
+Section: utils
+Priority: optional
+Suggests: sudo
+Homepage: https://github.com/arnavsx3/Eversor
+Description: Inspect and clean supported caches and obsolete packages
+ Eversor discovers supported application caches on Ubuntu and previews cleanup
+ before asking for confirmation. Personal files and unknown directories are
+ preserved. Optional system maintenance uses a narrowly scoped sudo helper.

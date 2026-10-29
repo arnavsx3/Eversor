@@ -9,7 +9,7 @@ from the developer's laptop is required on another machine.
 
 1. **Inventory:** inspect executable paths, installed Debian packages, Snap and
    Flatpak application IDs, desktop app state, and running user processes.
-2. **Inspect:** walk the user's home without following symlinks or crossing mount
+2. **Inspect (optional `--tree`):** walk the user's home without following symlinks or crossing mount
    points. Build an allocated-size tree, deduplicate hard links, and report
    inaccessible paths without treating them as cleanup candidates.
 3. **Detect:** application providers map inventory evidence to documented cache
@@ -55,6 +55,8 @@ internal/core/       inventory, scan, plan, cleanup policy, and native backends
 internal/report/     human-readable and JSON output
 docs/                architecture, usage, provider rules, and development guide
 .github/workflows/   verification and build automation
+packaging/           Debian package metadata
+scripts/             package assembly and verification
 ```
 
 The initial implementation uses the Go standard library. Provider definitions and
@@ -64,9 +66,11 @@ synthetic preservation tests rather than a blanket cache sweep.
 
 ## Delivery and verification
 
-Ship Linux binaries with a version identifier. Installation to
-`/usr/local/bin/eversor` enables both user cleanup and narrowly elevated package
-cleanup. Development binaries support dry-run and user-only cleanup.
+Ship Linux binaries with a numbered version and source commit. Debian packages
+install `/usr/bin/eversor`; source installation uses `/usr/local/bin/eversor`.
+Both enable user cleanup and narrowly elevated package cleanup. Development
+binaries support dry-run and user-only cleanup. Tagged releases are verified and
+published by CI; upgrades remain explicit, with no background updater.
 
 Test with disposable synthetic directories and fake command runners. Cover
 symlink substitution, hard links, mount boundaries, active apps, preserved files,

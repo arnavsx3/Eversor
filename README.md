@@ -8,7 +8,19 @@ Eversor provides a read-only storage preview and a confirmed cleanup command.
 It detects supported software and known cache artifacts on the current machine.
 Unknown directories are shown in the storage tree and never automatically purged.
 
-Build and install with Go 1.25 or newer:
+Download an architecture-matched `.deb` from [Releases](https://github.com/arnavsx3/Eversor/releases/latest),
+verify it against `SHA256SUMS`, then install it with APT:
+
+```sh
+sudo apt install ./eversor_0.1.0_amd64.deb
+eversor version
+```
+
+Use the arm64 file on ARM systems. If switching from a source installation,
+remove the old `/usr/local/bin/eversor` with `make uninstall` first. Release
+binaries do not require Go to be installed.
+
+Alternatively, build and install with Go 1.25 or newer:
 
 ```sh
 make check
@@ -20,7 +32,14 @@ eversor clean
 Development binaries can clean user caches. Installation to a root-owned system
 path enables the separate administrator-authorized package cleanup helper.
 See [installation and usage](docs/usage.md) for flags, reports, and uninstalling.
-CI produces Linux amd64 and arm64 archives with checksums.
+CI produces Linux amd64 and arm64 archives and `.deb` packages with checksums.
+The version comes from `VERSION`; the command also prints the source commit.
+
+Updates are manual. Install a newer downloaded `.deb` with APT, or run
+`make update` inside a clean source checkout to pull, verify and reinstall it.
+APT does not fetch GitHub releases automatically; no Eversor APT repository is
+configured. Use one installation method to avoid an older binary masking a newer
+one. See the usage guide for upgrades and removal.
 
 ## Workflow
 
