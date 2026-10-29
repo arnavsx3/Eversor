@@ -116,7 +116,19 @@ func Processes(uid uint32) ([]Process, bool) {
 		if nerr != nil {
 			continue
 		}
-		result = append(result, Process{Name: strings.ToLower(strings.TrimSpace(string(name))), Args: strings.Split(string(args), "\x00")})
+		process := Process{Name: strings.ToLower(strings.TrimSpace(string(name))), Args: strings.Split(string(args), "\x00")}
+		links := []string{filepath.Join(path, "exe"), filepath.Join(path, "cwd")}
+		if files, readErr := os.ReadDir(filepath.Join(path, "fd")); readErr == nil {
+			for _, file := range files {
+				links = append(links, filepath.Join(path, "fd", file.Name()))
+			}
+		}
+		for _, link := range links {
+			if target, linkErr := os.Readlink(link); linkErr == nil && filepath.IsAbs(target) {
+				process.Paths = append(process.Paths, strings.TrimSuffix(target, " (deleted)"))
+			}
+		}
+		result = append(result, process)
 	}
 	return result, known
 }
@@ -135,6 +147,20 @@ func (e Environment) Active(names []string) bool {
 				if base == name || (name == "npm" && base == "npm-cli.js") || (name == "pre-commit" && arg == "pre_commit") {
 					return true
 				}
+			}
+		}
+	}
+	return false
+}
+
+func (e Environment) InUse(path string) bool {
+	if path == "" {
+		return false
+	}
+	for _, process := range e.Processes {
+		for _, opened := range process.Paths {
+			if within(path, opened) {
+				return true
 			}
 		}
 	}

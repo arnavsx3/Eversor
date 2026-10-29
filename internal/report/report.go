@@ -55,3 +55,22 @@ func Plan(w io.Writer, p core.Plan) {
 		fmt.Fprintln(w, "Inventory note:", warning)
 	}
 }
+
+func Result(w io.Writer, r core.Result) {
+	fmt.Fprintf(w, "[%s] %s\n", r.Status, r.Title)
+	if r.Detail != "" {
+		for _, line := range strings.Split(strings.TrimSpace(r.Detail), "\n") {
+			fmt.Fprintln(w, "  "+line)
+		}
+	}
+}
+
+func Summary(w io.Writer, r core.Report) {
+	counts := map[string]int{}
+	for _, result := range r.Results {
+		counts[result.Status]++
+	}
+	fmt.Fprintf(w, "\nCleanup complete: %d cleaned, %d skipped, %d failed.\n", counts["cleaned"], counts["skipped"], counts["failed"])
+	fmt.Fprintf(w, "Filesystem available-space change: %s (includes concurrent disk activity).\n", Size(r.FreedBytes))
+	fmt.Fprintln(w, "Rebuildable caches may return as applications are used. No automatic log was saved.")
+}

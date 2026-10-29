@@ -88,6 +88,40 @@ func cacheSize(root *os.Root, uid uint32) (int64, error) {
 	return bytes, err
 }
 
+func cacheWritable(root *os.Root, uid uint32) error {
+	return fs.WalkDir(root.FS(), ".", func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if !d.IsDir() {
+			return nil
+		}
+		info, err := d.Info()
+		if err != nil {
+			return err
+		}
+		if identity(info).UID != uid {
+			return fmt.Errorf("cache directory ownership changed")
+		}
+		if info.Mode().Perm()&0200 != 0 {
+			return nil
+		}
+		file, err := root.Open(path)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+		opened, err := file.Stat()
+		if err != nil {
+			return err
+		}
+		if identity(opened) != identity(info) || !opened.IsDir() {
+			return fmt.Errorf("cache directory changed before permission adjustment")
+		}
+		return file.Chmod(opened.Mode().Perm() | 0700)
+	})
+}
+
 func ScanTree(ctx context.Context, e Environment, depth, limit int) Tree {
 	tree := Tree{Root: e.Home}
 	root, err := os.OpenRoot(e.Home)

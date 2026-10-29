@@ -3,6 +3,7 @@ package core
 
 import (
 	"context"
+	"os"
 	"os/exec"
 	"time"
 )
@@ -11,20 +12,38 @@ type Runner interface {
 	Run(context.Context, string, ...string) (string, error)
 }
 
-type ExecRunner struct{}
+type ExecRunner struct{ System bool }
 
-func (ExecRunner) Run(ctx context.Context, name string, args ...string) (string, error) {
+type PinnedRunner interface {
+	RunPinned(context.Context, *os.File, string, ...string) (string, error)
+}
+
+func (r ExecRunner) RunPinned(ctx context.Context, directory *os.File, name string, args ...string) (string, error) {
 	query, cancel := context.WithTimeout(ctx, 10*time.Minute)
 	defer cancel()
 	cmd := exec.CommandContext(query, name, args...)
 	cmd.Env = commandEnvironment()
+	cmd.ExtraFiles = []*os.File{directory}
+	output, err := cmd.CombinedOutput()
+	return string(output), err
+}
+
+func (r ExecRunner) Run(ctx context.Context, name string, args ...string) (string, error) {
+	query, cancel := context.WithTimeout(ctx, 10*time.Minute)
+	defer cancel()
+	cmd := exec.CommandContext(query, name, args...)
+	cmd.Env = commandEnvironment()
+	if r.System {
+		cmd.Env = []string{"PATH=/usr/sbin:/usr/bin:/sbin:/bin", "LC_ALL=C", "DEBIAN_FRONTEND=noninteractive"}
+	}
 	output, err := cmd.CombinedOutput()
 	return string(output), err
 }
 
 type Process struct {
-	Name string
-	Args []string
+	Name  string
+	Args  []string
+	Paths []string
 }
 
 type Inventory struct {

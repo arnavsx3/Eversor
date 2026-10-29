@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 )
 
 func BuildPlan(ctx context.Context, e Environment, depth int, noTree, noProjects bool) Plan {
@@ -41,6 +42,10 @@ func BuildPlan(ctx context.Context, e Environment, depth int, noTree, noProjects
 		if e.Active(rule.Watch) && len(rule.Watch) > 0 {
 			candidate.Status = "skipped"
 			candidate.Reason = "related application/build tool is running, or activity could not be checked"
+		}
+		if e.InUse(path) {
+			candidate.Status = "skipped"
+			candidate.Reason = "a running process is using this cache or a generated binary inside it"
 		}
 		p.Candidates = append(p.Candidates, candidate)
 	}
@@ -131,6 +136,58 @@ func BuildPlan(ctx context.Context, e Environment, depth int, noTree, noProjects
 			scope = "user"
 		}
 		p.Candidates = append(p.Candidates, Candidate{ID: entry.id, Provider: entry.command, Title: entry.title, Action: entry.id, Scope: scope, Evidence: "installed package manager / native cleanup API; size determined by tool", Status: "ready"})
+		current := &p.Candidates[len(p.Candidates)-1]
+		if entry.id == "snap-disabled" {
+			var revisions []string
+			for _, revision := range e.Inventory.Snaps {
+				if revision.Disabled {
+					revisions = append(revisions, revision.Name+"@"+revision.Revision)
+				}
+			}
+			if len(revisions) == 0 {
+				current.Status = "skipped"
+				current.Reason = "no confirmed disabled Snap revisions"
+			} else {
+				current.Evidence = "disabled revisions: " + strings.Join(revisions, ", ")
+			}
+		}
+		if entry.id == "apt-autoremove" {
+			query, cancel := context.WithTimeout(ctx, 20*time.Second)
+			output, err := e.Runner.Run(query, e.Inventory.Commands["apt-get"], "-s", "autoremove", "--purge")
+			cancel()
+			if err != nil {
+				current.Status = "skipped"
+				current.Reason = "APT removal plan could not be verified"
+			} else {
+				var removals, kernels []string
+				for _, line := range strings.Split(output, "\n") {
+					fields := strings.Fields(line)
+					if len(fields) > 1 && (fields[0] == "Remv" || fields[0] == "Purg") {
+						removals = append(removals, fields[1])
+					}
+				}
+				for name := range e.Inventory.Packages {
+					if strings.HasPrefix(name, "linux-image-") {
+						kernels = append(kernels, "ii "+name)
+					}
+				}
+				if len(removals) == 0 {
+					current.Status = "skipped"
+					current.Reason = "no package-manager-confirmed unused packages"
+				} else if guardErr := KernelGuard(output, strings.Join(kernels, "\n"), RunningKernel()); guardErr != nil {
+					current.Status = "skipped"
+					current.Reason = guardErr.Error()
+				} else {
+					current.Evidence = "APT proposed removals: " + strings.Join(removals, ", ")
+				}
+			}
+		}
+		if entry.id == "docker-build" {
+			if err := LocalDocker(ctx, e); err != nil {
+				p.Candidates[len(p.Candidates)-1].Status = "skipped"
+				p.Candidates[len(p.Candidates)-1].Reason = err.Error()
+			}
+		}
 	}
 	sort.Slice(p.Candidates, func(i, j int) bool { return p.Candidates[i].ID < p.Candidates[j].ID })
 	return p
