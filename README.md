@@ -4,8 +4,16 @@ An open-source Linux cleanup tool for understanding disk usage and reclaiming
 space from known caches and obsolete files.
 
 The architecture is documented in [docs/architecture.md](docs/architecture.md).
-Implementation is being developed in focused increments; runnable commands and
-their supported cleanup rules will be documented as they are delivered.
+The read-only scanner and preview command are implemented. Cleanup execution is
+the next implementation increment.
+
+Build with Go 1.25 or newer:
+
+```sh
+go build -o bin/eversor ./cmd/eversor
+./bin/eversor dry-run
+./bin/eversor dry-run --json --no-tree
+```
 
 ## Planned workflow
 

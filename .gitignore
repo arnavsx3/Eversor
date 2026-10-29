@@ -8,3 +8,10 @@
 *.log
 .DS_Store
 Thumbs.db
+
+# Local build products and reports
+/bin/
+/dist/
+/coverage.out
+/eversor
+/reports/
