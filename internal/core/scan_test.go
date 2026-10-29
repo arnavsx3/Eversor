@@ -114,6 +114,41 @@ func TestCacheBoundaryRejectsLinksAndMounts(t *testing.T) {
 	}
 }
 
+func TestHomeAliasCannotBypassRealMountBoundaries(t *testing.T) {
+	e := fixture(t)
+	realHome := e.Home
+	realCache := filepath.Join(e.Cache, "pip")
+	write(t, filepath.Join(realCache, "mounted/important"), "keep")
+	e.Mounts = []string{filepath.Join(realCache, "mounted")}
+	alias := filepath.Join(t.TempDir(), "home-alias")
+	if err := os.Symlink(realHome, alias); err != nil {
+		t.Fatal(err)
+	}
+	e.Home = alias
+	if root, _, err := e.OpenCache(filepath.Join(alias, ".cache/pip")); err == nil {
+		root.Close()
+		t.Fatal("home alias hid the real mounted cache child")
+	}
+	resolved, err := filepath.EvalSymlinks(alias)
+	if err != nil {
+		t.Fatal(err)
+	}
+	e.Home = resolved // Discovery resolves the account's home before using mountinfo.
+	if root, _, err := e.OpenCache(realCache); err == nil {
+		root.Close()
+		t.Fatal("mounted child authorized after resolving home")
+	}
+	e.Mounts = nil
+	root, _, err := e.OpenCache(realCache)
+	if err != nil {
+		t.Fatal("resolved home must support ordinary caches", err)
+	}
+	root.Close()
+	if data, err := os.ReadFile(filepath.Join(realCache, "mounted/important")); err != nil || string(data) != "keep" {
+		t.Fatal("boundary inspection changed important data", err)
+	}
+}
+
 func TestHardLinkedCacheIsNotClaimedAsReclaimable(t *testing.T) {
 	e := fixture(t)
 	cache := filepath.Join(e.Cache, "pip")

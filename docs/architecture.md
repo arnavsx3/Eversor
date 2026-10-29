@@ -35,6 +35,8 @@ from the developer's laptop is required on another machine.
 - File cleanup runs as the ordinary user through Go's traversal-resistant
   `os.Root` API, using the inspected directory identity as an additional guard.
   Keep the cache directory itself; clear only its approved contents.
+- Resolve account-home aliases before interpreting mount boundaries. Cache paths
+  with unresolved aliases or symlink components cannot authorize deletion.
 - Native cleanup commands are fixed by provider code and receive argument arrays,
   never shell strings. Missing tools and unavailable daemons become skipped items.
 - System cleanup uses a narrow root helper in the installed, root-owned binary.

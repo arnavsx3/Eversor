@@ -12,6 +12,13 @@ import (
 )
 
 func (e Environment) OpenCache(path string) (*os.Root, Identity, error) {
+	resolvedHome, err := filepath.EvalSymlinks(e.Home)
+	if err != nil {
+		return nil, Identity{}, err
+	}
+	if resolvedHome != filepath.Clean(e.Home) {
+		return nil, Identity{}, fmt.Errorf("unresolved home alias cannot authorize cache cleanup")
+	}
 	path = filepath.Clean(path)
 	if path == e.Home || !within(e.Home, path) {
 		return nil, Identity{}, fmt.Errorf("cache is outside the supported home boundary")

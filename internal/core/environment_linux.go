@@ -37,7 +37,10 @@ func Discover(ctx context.Context) (Environment, error) {
 	if uid == 0 {
 		return Environment{}, errors.New("run Eversor from your normal account; system actions elevate separately")
 	}
-	home := filepath.Clean(account.HomeDir)
+	home, err := filepath.EvalSymlinks(filepath.Clean(account.HomeDir))
+	if err != nil {
+		return Environment{}, fmt.Errorf("resolve account home: %w", err)
+	}
 	xdg := func(name, fallback string) string {
 		if value := os.Getenv(name); filepath.IsAbs(value) {
 			return filepath.Clean(value)
