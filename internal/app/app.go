@@ -23,7 +23,7 @@ var discover = core.Discover
 
 func Run(ctx context.Context, args []string, in io.Reader, out, errout io.Writer) int {
 	if len(args) == 0 || args[0] == "help" || args[0] == "--help" {
-		fmt.Fprintln(out, "Eversor\n\nUsage: eversor dry-run [options]\n       eversor clean [options]\n       eversor version\n\nOptions:\n  --json          emit machine-readable output\n  --no-tree       omit the home storage tree\n  --tree-depth N  tree depth (1-4; default 2)\n  --no-projects   retain project build outputs\n  --user-only     omit privileged package/log cleanup\n  --yes           confirm clean without an interactive question\n\nOnly supported caches and package-manager-confirmed obsolete items are eligible.\nUnknown folders, profiles, credentials, source code, databases and installed toolchains are retained.")
+		fmt.Fprintln(out, "Eversor\n\nUsage: eversor dry-run [options]\n       eversor clean [options]\n       eversor version\n\nOptions:\n  --json          emit machine-readable output\n  --tree          include the full home storage tree (slower)\n  --no-tree       omit the home storage tree (default)\n  --tree-depth N  tree depth (1-4; default 2)\n  --no-projects   retain project build outputs\n  --user-only     omit privileged package/log cleanup\n  --yes           confirm clean without an interactive question\n\nOnly supported caches and package-manager-confirmed obsolete items are eligible.\nUnknown folders, profiles, credentials, source code, databases and installed toolchains are retained.")
 		return 0
 	}
 	if args[0] == "version" || args[0] == "--version" {
@@ -40,28 +40,45 @@ func Run(ctx context.Context, args []string, in io.Reader, out, errout io.Writer
 	flags := flag.NewFlagSet(args[0], flag.ContinueOnError)
 	flags.SetOutput(errout)
 	jsonOutput := flags.Bool("json", false, "emit JSON")
-	noTree := flags.Bool("no-tree", false, "omit the home storage tree")
+	noTree := flags.Bool("no-tree", false, "omit the home storage tree (default)")
+	showTree := flags.Bool("tree", false, "include the full home storage tree")
 	noProjects := flags.Bool("no-projects", false, "retain project build outputs")
 	userOnly := flags.Bool("user-only", false, "omit privileged cleanup")
 	yes := flags.Bool("yes", false, "confirm cleanup")
 	depth := flags.Int("tree-depth", 2, "storage tree depth (1-4)")
-	if flags.Parse(args[1:]) != nil {
+	if err := flags.Parse(args[1:]); err != nil {
+		if err == flag.ErrHelp {
+			return 0
+		}
 		return 2
 	}
 	if flags.NArg() != 0 || *depth < 1 || *depth > 4 {
 		fmt.Fprintln(errout, "unexpected arguments or invalid tree depth")
 		return 2
 	}
+	wantTree := *showTree
+	flags.Visit(func(f *flag.Flag) {
+		if f.Name == "tree-depth" {
+			wantTree = true
+		}
+	})
+	if wantTree && *noTree {
+		fmt.Fprintln(errout, "--no-tree cannot be combined with --tree or --tree-depth")
+		return 2
+	}
 	if args[0] == "clean" && *jsonOutput && !*yes {
 		fmt.Fprintln(errout, "clean --json requires --yes; preview first with dry-run --json")
 		return 2
+	}
+	if !*jsonOutput {
+		fmt.Fprintln(errout, "Inspecting supported caches…")
 	}
 	env, err := discover(ctx)
 	if err != nil {
 		fmt.Fprintln(errout, err)
 		return 1
 	}
-	plan := core.BuildPlan(ctx, env, *depth, *noTree, *noProjects)
+	plan := core.BuildPlan(ctx, env, *depth, !wantTree, *noProjects)
 	if *userOnly {
 		filtered := plan.Candidates[:0]
 		for _, c := range plan.Candidates {

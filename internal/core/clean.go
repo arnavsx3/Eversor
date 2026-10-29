@@ -126,7 +126,7 @@ func CleanCandidate(ctx context.Context, e Environment, c Candidate, refresh Ref
 			result.Detail = "cache was replaced after inspection"
 			return result
 		}
-		if _, err = cacheSize(root, e.UID); err != nil {
+		if _, err = cacheSize(ctx, root, e.UID); err != nil {
 			result.Detail = "cache contents no longer eligible: " + err.Error()
 			return result
 		}

@@ -25,19 +25,23 @@ then use `sudo install -o root -g root -m 0755 eversor /usr/local/bin/eversor`.
 
 ```sh
 eversor dry-run
+eversor dry-run --tree
 eversor dry-run --tree-depth 1
 eversor dry-run --no-tree
 eversor dry-run --json
 ```
 
 Preview does not delete files, request administrator access, or save a report.
-It prints a home storage tree and supported cleanup candidates with reasons and
-estimates. Missing apps require no configuration; known artifacts can be found
-even after their app was uninstalled. Unknown folders in the tree stay untouched.
+The default output is a compact list of supported cleanup candidates with
+reasons and estimates. Use `--tree` to add a full home storage overview; an
+explicit `--tree-depth` also enables it. Missing apps require no configuration;
+known artifacts can be found even after their app was uninstalled. Unknown folders in the tree stay untouched.
 
 The tree does not follow symlinks or cross mounts. It inspects up to one million
-entries and reports if the tree is partial. `--no-tree` omits the general storage
-walk. `--no-projects` also omits Rust build-cache discovery.
+entries and reports if the tree is partial. The general storage walk is skipped
+by default; `--no-tree` remains supported for existing scripts. It cannot be
+combined with `--tree` or `--tree-depth`. `--no-projects` also omits Rust
+build-cache discovery.
 
 ## Clean
 

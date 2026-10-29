@@ -3,7 +3,9 @@ package app
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"github.com/arnavsx3/Eversor/internal/core"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -21,6 +23,38 @@ func TestCLIHelpVersionAndInvalidArguments(t *testing.T) {
 		var out, errors bytes.Buffer
 		if Run(context.Background(), args, strings.NewReader(""), &out, &errors) != 2 {
 			t.Fatalf("invalid arguments accepted: %v", args)
+		}
+	}
+}
+
+func TestCompactPreviewAndExplicitTree(t *testing.T) {
+	home := t.TempDir()
+	previous := discover
+	t.Cleanup(func() { discover = previous })
+	discover = func(context.Context) (core.Environment, error) {
+		return core.Environment{Home: home, UID: uint32(os.Getuid()), ProcessesKnown: true}, nil
+	}
+	for _, tc := range []struct {
+		args []string
+		tree bool
+	}{
+		{[]string{"dry-run", "--json"}, false},
+		{[]string{"dry-run", "--json", "--no-tree"}, false},
+		{[]string{"dry-run", "--json", "--tree"}, true},
+		{[]string{"dry-run", "--json", "--tree-depth", "1"}, true},
+	} {
+		var out, errors bytes.Buffer
+		if status := Run(context.Background(), tc.args, strings.NewReader(""), &out, &errors); status != 0 {
+			t.Fatalf("%v: %d %s", tc.args, status, errors.String())
+		}
+		var p core.Plan
+		if err := json.Unmarshal(out.Bytes(), &p); err != nil || (p.Tree.Root != "") != tc.tree {
+			t.Fatalf("unexpected tree for %v: %+v %v", tc.args, p.Tree, err)
+		}
+	}
+	for _, args := range [][]string{{"dry-run", "--no-tree", "--tree"}, {"clean", "--no-tree", "--tree-depth", "1"}} {
+		if Run(context.Background(), args, strings.NewReader(""), io.Discard, io.Discard) != 2 {
+			t.Fatal("conflicting tree flags accepted")
 		}
 	}
 }

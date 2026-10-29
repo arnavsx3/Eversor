@@ -2,6 +2,7 @@ package core
 
 import (
 	"context"
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -20,6 +21,25 @@ func write(t *testing.T, path, data string) {
 	}
 	if err := os.WriteFile(path, []byte(data), 0600); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestCancelledCacheInspectionStopsWithoutDeleting(t *testing.T) {
+	e := fixture(t)
+	path := filepath.Join(e.Cache, "pip/file")
+	write(t, path, "keep")
+	root, _, err := e.OpenCache(filepath.Dir(path))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer root.Close()
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	if _, err := cacheSize(ctx, root, e.UID); !errors.Is(err, context.Canceled) {
+		t.Fatal("cancelled inspection continued", err)
+	}
+	if _, err := os.Stat(path); err != nil {
+		t.Fatal("inspection changed cache", err)
 	}
 }
 
@@ -100,7 +120,7 @@ func TestHardLinkedCacheIsNotClaimedAsReclaimable(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer root.Close()
-	size, err := cacheSize(root, e.UID)
+	size, err := cacheSize(context.Background(), root, e.UID)
 	if err != nil || size != 0 {
 		t.Fatalf("shared data overestimated: %d %v", size, err)
 	}

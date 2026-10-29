@@ -46,7 +46,8 @@ to detect the software installed on each machine. Unsupported folders remain
 inspection-only rather than being guessed safe to delete.
 
 See [supported providers](docs/providers.md) for the exact cleanup boundaries.
-Both commands accept `--no-tree`, `--tree-depth 1` through `4`, `--no-projects`,
+Both commands show a compact preview by default. Add `--tree` for the storage
+overview. Both accept `--no-tree`, `--tree-depth 1` through `4`, `--no-projects`,
 `--user-only`, and `--json`. `clean` shows a fresh preview and asks for confirmation;
 `--yes` confirms it non-interactively. JSON cleanup requires `--yes`.
 

@@ -32,7 +32,7 @@ func BuildPlan(ctx context.Context, e Environment, depth int, noTree, noProjects
 			candidate.Reason = err.Error()
 		} else {
 			candidate.Identity = id
-			candidate.Bytes, err = cacheSize(root, e.UID)
+			candidate.Bytes, err = cacheSize(ctx, root, e.UID)
 			root.Close()
 			if err != nil {
 				candidate.Status = "skipped"

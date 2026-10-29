@@ -56,10 +56,13 @@ func (e Environment) OpenCache(path string) (*os.Root, Identity, error) {
 	return root, want, nil
 }
 
-func cacheSize(root *os.Root, uid uint32) (int64, error) {
+func cacheSize(ctx context.Context, root *os.Root, uid uint32) (int64, error) {
 	var bytes int64
 	seen := map[[2]uint64]bool{}
 	err := fs.WalkDir(root.FS(), ".", func(path string, d fs.DirEntry, err error) error {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
 		if err != nil {
 			return err
 		}
