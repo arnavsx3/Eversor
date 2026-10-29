@@ -114,6 +114,7 @@ type Result struct {
 }
 
 type Report struct {
+	Interrupted         bool               `json:"interrupted,omitempty"`
 	Plan                Plan               `json:"plan"`
 	Results             []Result           `json:"results"`
 	FreedBytes          int64              `json:"filesystem_available_change_bytes"`

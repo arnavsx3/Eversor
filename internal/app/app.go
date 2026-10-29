@@ -104,12 +104,12 @@ func Run(ctx context.Context, args []string, in io.Reader, out, errout io.Writer
 	}
 	if !*yes {
 		fmt.Fprint(out, "\nClean the eligible items above? [y/N] ")
-		answer, readErr := bufio.NewReader(in).ReadString('\n')
-		if readErr != nil && readErr != io.EOF {
+		confirmed, readErr := confirm(ctx, in)
+		if readErr != nil {
 			fmt.Fprintln(errout, readErr)
 			return 1
 		}
-		if strings.ToLower(strings.TrimSpace(answer)) != "y" && strings.ToLower(strings.TrimSpace(answer)) != "yes" {
+		if !confirmed {
 			fmt.Fprintln(out, "Cancelled. No cleanup actions executed.")
 			return 0
 		}
@@ -163,6 +163,10 @@ func Run(ctx context.Context, args []string, in io.Reader, out, errout io.Writer
 		r.FreedBytes += filesystem.Bytes
 	}
 	status := 0
+	r.Interrupted = ctx.Err() != nil
+	if r.Interrupted {
+		status = 1
+	}
 	for _, result := range r.Results {
 		if result.Status == "failed" {
 			status = 1
@@ -176,6 +180,34 @@ func Run(ctx context.Context, args []string, in io.Reader, out, errout io.Writer
 		report.Summary(out, r)
 	}
 	return status
+}
+
+func confirm(ctx context.Context, in io.Reader) (bool, error) {
+	type answer struct {
+		line string
+		err  error
+	}
+	answers := make(chan answer, 1)
+	go func() {
+		line, err := bufio.NewReader(in).ReadString('\n')
+		answers <- answer{line, err}
+	}()
+	select {
+	case <-ctx.Done():
+		return false, ctx.Err()
+	case response := <-answers:
+		if err := ctx.Err(); err != nil {
+			return false, err
+		}
+		if response.err == io.EOF {
+			return false, nil
+		}
+		if response.err != nil {
+			return false, response.err
+		}
+		line := strings.ToLower(strings.TrimSpace(response.line))
+		return line == "y" || line == "yes", nil
+	}
 }
 
 func encode(out io.Writer, value any) int {

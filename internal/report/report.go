@@ -70,7 +70,11 @@ func Summary(w io.Writer, r core.Report) {
 	for _, result := range r.Results {
 		counts[result.Status]++
 	}
-	fmt.Fprintf(w, "\nCleanup complete: %d cleaned, %d skipped, %d failed.\n", counts["cleaned"], counts["skipped"], counts["failed"])
+	label := "Cleanup complete"
+	if r.Interrupted {
+		label = "Cleanup interrupted"
+	}
+	fmt.Fprintf(w, "\n%s: %d cleaned, %d skipped, %d failed.\n", label, counts["cleaned"], counts["skipped"], counts["failed"])
 	fmt.Fprintf(w, "Measured available-space change: %s (includes concurrent disk activity).\n", Size(r.FreedBytes))
 	if len(r.Filesystems) > 1 {
 		for _, filesystem := range r.Filesystems {

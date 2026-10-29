@@ -56,6 +56,8 @@ eversor clean --yes --json
 the displayed plan with `y` or use `--yes`. Empty input or EOF cancels cleanup.
 JSON cleanup requires `--yes` so the output is not mixed with a confirmation
 question. Use `--user-only` to omit system package and archived-journal cleanup.
+Ctrl+C cancels a pending confirmation. An interrupted cleanup exits with status 1
+and reports interruption; actions that already completed are not rolled back.
 
 Run the public commands from your normal account. Only fixed system operations
 are elevated through sudo; the password prompt is for those operations. Cache
